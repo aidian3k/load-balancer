@@ -1,0 +1,65 @@
+plugins {
+    id 'java'
+}
+
+group = 'ee.pw.microservice'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    implementation 'org.postgresql:postgresql:42.7.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    implementation 'com.google.code.gson:gson:2.8.8'
+}
+
+tasks.register('runWorkers') {
+    doLast {
+        def arguments_file = file('src/main/resources/workers_list.txt')
+
+        arguments_file.eachLine {
+            line ->
+                {
+                    println("Running worker program with following arguments: $line")
+                    def worker_arguments = line.split(",")
+
+                    javaexec {
+                        mainClass = 'ee.pw.microservice.worker.WorkerMain'
+                        classpath = sourceSets.main.runtimeClasspath
+                        args(worker_arguments)
+                    }
+                }
+        }
+    }
+}
+
+tasks.register('runLoadBalancer') {
+    doLast {
+        def algorithm_value = project.hasProperty('algorithm') ? project.property('algorithm') : 'ROUND_ROBIN'
+        println("Running load-balancer with algorithm: $algorithm_value")
+
+        javaexec {
+            mainClass = 'ee.pw.microservice.load_balancer.LoadBalancerMain'
+            classpath = sourceSets.main.runtimeClasspath
+            args(algorithm_value)
+        }
+    }
+}
+
+tasks.register('runClient') {
+    doLast {
+        javaexec {
+            mainClass = 'ee.pw.microservice.client.ClientMain'
+            classpath = sourceSets.main.runtimeClasspath
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
