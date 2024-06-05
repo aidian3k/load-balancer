@@ -1,3 +1,5 @@
+import groovy.transform.*
+
 plugins {
     id 'java'
 }
@@ -20,23 +22,31 @@ dependencies {
 
 tasks.register('runWorkers') {
     doLast {
-        def arguments_file = file('src/main/resources/workers_list.txt')
+        def argumentsFile = file('src/main/resources/workers_list.txt')
 
-        arguments_file.eachLine {
-            line ->
-                {
-                    println("Running worker program with following arguments: $line")
-                    def worker_arguments = line.split(",")
+        def javaExecTasks = []
+        def counter = 0
 
-                    javaexec {
-                        mainClass = 'ee.pw.microservice.worker.WorkerMain'
-                        classpath = sourceSets.main.runtimeClasspath
-                        args(worker_arguments)
-                    }
-                }
+        argumentsFile.eachLine { line ->
+            println("Running worker program with following arguments: $line")
+            def workerArguments = line.split(",")
+
+            def javaExecTask = tasks.register("runWorker${counter}", JavaExec) {
+                mainClass = 'ee.pw.microservice.worker.WorkerMain'
+                classpath = sourceSets.main.runtimeClasspath
+                args(workerArguments[1])
+            }
+
+            javaExecTasks.add(javaExecTask)
+            counter++
+        }
+
+        javaExecTasks.each { task ->
+            task.get().exec()
         }
     }
 }
+
 
 tasks.register('runLoadBalancer') {
     doLast {

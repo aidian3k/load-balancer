@@ -45,10 +45,10 @@ class LoadBalancerWorkerRequest extends Thread {
 			)
 		);
 
-		workerWriter.write(clientReader.readLine());
+		workerWriter.write(clientReader.readLine() + "\n");
 		workerWriter.flush();
 
-		clientWriter.write(workerReader.readLine());
+		clientWriter.write(workerReader.readLine() + "\n");
 		clientWriter.flush();
 
 		workerSocket.close();

@@ -42,7 +42,7 @@ public class WorkerTask extends Thread {
 			packageId
 		);
 
-		Statement sqlStatement = databaseConnection.createStatement();
+		Statement sqlStatement = databaseConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		ResultSet queryResultSet = sqlStatement.executeQuery(query);
 		queryResultSet.first();
 

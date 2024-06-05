@@ -38,7 +38,7 @@ public class ClientRequestSender extends Thread {
 
 		int packageId = new Random().nextInt(4) + 1;
 
-		loadBalancerWriter.write(packageId);
+		loadBalancerWriter.write(packageId + "\n");
 		loadBalancerWriter.flush();
 
 		String jsonString = loadBalancerReader.readLine();
