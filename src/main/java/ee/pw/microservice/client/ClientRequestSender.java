@@ -1,47 +1,35 @@
 package ee.pw.microservice.client;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import ee.pw.microservice.helpers.SocketHelpers;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RequiredArgsConstructor
 public class ClientRequestSender extends Thread {
 
 	private final Socket loadBalancingSocket;
-	private static final Logger LOGGER = Logger.getLogger(
-		ClientRequestSender.class.getName()
+	private static final Logger logger = LoggerFactory.getLogger(
+		ClientRequestSender.class
 	);
 
 	@Override
 	@SneakyThrows
 	public void run() {
-		BufferedWriter loadBalancerWriter = new BufferedWriter(
-			new OutputStreamWriter(
-				loadBalancingSocket.getOutputStream(),
-				StandardCharsets.UTF_8
-			)
+		int packageId = new Random()
+			.nextInt(ClientConstants.NUMBER_OF_PACKAGES_DATA_IN_DATABASE) +
+		1;
+
+		SocketHelpers.writeStringToSocket(String.valueOf(packageId), loadBalancingSocket);
+
+		String responseValueFromLoadBalancer = SocketHelpers.extractStringFromSocket(loadBalancingSocket);
+		logger.info(
+			"Client got the response from load-balancer with value=[{}]",
+			responseValueFromLoadBalancer
 		);
-		BufferedReader loadBalancerReader = new BufferedReader(
-			new InputStreamReader(
-				loadBalancingSocket.getInputStream(),
-				StandardCharsets.UTF_8
-			)
-		);
-
-		int packageId = new Random().nextInt(4) + 1;
-
-		loadBalancerWriter.write(packageId + "\n");
-		loadBalancerWriter.flush();
-
-		String jsonString = loadBalancerReader.readLine();
-		LOGGER.log(Level.INFO, jsonString);
 	}
 }

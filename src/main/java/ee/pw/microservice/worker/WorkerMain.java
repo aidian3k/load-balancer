@@ -7,8 +7,14 @@ import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WorkerMain {
+
+	private static final Logger logger = LoggerFactory.getLogger(
+		WorkerMain.class
+	);
 
 	@SneakyThrows
 	public static void main(String... args) {
@@ -19,6 +25,10 @@ public class WorkerMain {
 			DATABASE_PASSWORD
 		);
 		ServerSocket workerSocket = new ServerSocket(Integer.parseInt(args[0]));
+		logger.info(
+			"Started worker program with thread name=[{}]",
+			Thread.currentThread().getName()
+		);
 
 		while (!Thread.interrupted()) {
 			Socket loadBalancerSocket = workerSocket.accept();

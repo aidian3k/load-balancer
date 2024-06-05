@@ -12,7 +12,9 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public final class LoadBalancerHandler {
 
 	private static final String FILE_NAME = "workers_list.txt";

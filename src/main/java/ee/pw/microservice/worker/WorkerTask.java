@@ -4,21 +4,30 @@ import com.google.gson.JsonObject;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
+
+import ee.pw.microservice.helpers.SocketHelpers;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RequiredArgsConstructor
 public class WorkerTask extends Thread {
 
 	private final Socket loadBalancingSocket;
 	private final Connection databaseConnection;
+	private static final Logger logger = LoggerFactory.getLogger(
+		WorkerTask.class
+	);
 
 	@Override
 	@SneakyThrows
@@ -59,6 +68,11 @@ public class WorkerTask extends Thread {
 			);
 		}
 
-		loadBalancerWriter.write(responseJsonObject.toString());
+		logger.info(
+			"Sending response object with value=[{}] to the load-balancer",
+			responseJsonObject
+		);
+
+		SocketHelpers.writeStringToSocket(responseJsonObject.toString(), loadBalancingSocket);
 	}
 }

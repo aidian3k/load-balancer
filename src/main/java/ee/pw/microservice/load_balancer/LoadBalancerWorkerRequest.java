@@ -1,16 +1,19 @@
 package ee.pw.microservice.load_balancer;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
+
+import ee.pw.microservice.helpers.SocketHelpers;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RequiredArgsConstructor
 class LoadBalancerWorkerRequest extends Thread {
+
+	private static final Logger logger = LoggerFactory.getLogger(
+		LoadBalancerMain.class
+	);
 
 	private final Socket clientSocket;
 	private final Socket workerSocket;
@@ -20,36 +23,20 @@ class LoadBalancerWorkerRequest extends Thread {
 	@Override
 	@SneakyThrows
 	public void run() {
-		BufferedWriter workerWriter = new BufferedWriter(
-			new OutputStreamWriter(
-				workerSocket.getOutputStream(),
-				StandardCharsets.UTF_8
-			)
-		);
-		BufferedWriter clientWriter = new BufferedWriter(
-			new OutputStreamWriter(
-				clientSocket.getOutputStream(),
-				StandardCharsets.UTF_8
-			)
-		);
-		BufferedReader workerReader = new BufferedReader(
-			new InputStreamReader(
-				workerSocket.getInputStream(),
-				StandardCharsets.UTF_8
-			)
-		);
-		BufferedReader clientReader = new BufferedReader(
-			new InputStreamReader(
-				clientSocket.getInputStream(),
-				StandardCharsets.UTF_8
-			)
+		String packageIdToFetchFromClientSocket = SocketHelpers.extractStringFromSocket(clientSocket);
+		SocketHelpers.writeStringToSocket(packageIdToFetchFromClientSocket, workerSocket);
+		logger.info(
+			"Load balancer sent the request to worker with index=[{}] on port=[{}]",
+			currentServer,
+			workerSocket.getPort()
 		);
 
-		workerWriter.write(clientReader.readLine() + "\n");
-		workerWriter.flush();
-
-		clientWriter.write(workerReader.readLine() + "\n");
-		clientWriter.flush();
+		String responseJsonObjectFromWorker = SocketHelpers.extractStringFromSocket(workerSocket);
+		SocketHelpers.writeStringToSocket(responseJsonObjectFromWorker, clientSocket);
+		logger.info(
+			"Worker with index=[{}] sent the response to loadbalancer",
+			currentServer
+		);
 
 		workerSocket.close();
 		clientSocket.close();
