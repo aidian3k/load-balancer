@@ -1,6 +1,7 @@
 package ee.pw.microservice.worker;
 
 import com.google.gson.JsonObject;
+import ee.pw.microservice.helpers.SocketHelpers;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStreamReader;
@@ -13,8 +14,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
-
-import ee.pw.microservice.helpers.SocketHelpers;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
@@ -73,6 +72,9 @@ public class WorkerTask extends Thread {
 			responseJsonObject
 		);
 
-		SocketHelpers.writeStringToSocket(responseJsonObject.toString(), loadBalancingSocket);
+		SocketHelpers.writeStringToSocket(
+			responseJsonObject.toString(),
+			loadBalancingSocket
+		);
 	}
 }
