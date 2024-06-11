@@ -9,7 +9,7 @@ import lombok.Getter;
 @Getter
 class WorkerLoads {
 
-	private final List<AtomicInteger> workerLoads;
+	private final List<Integer> workerLoads;
 
 	private WorkerLoads() {
 		this.workerLoads = new ArrayList<>();
@@ -19,43 +19,34 @@ class WorkerLoads {
 		WorkerLoads workerLoads = new WorkerLoads();
 		final int initialWorkerLoadCount = 0;
 
-		IntStream
-			.of(0, clusterSize)
-			.forEach(element ->
-				workerLoads
-					.getWorkerLoads()
-					.add(new AtomicInteger(initialWorkerLoadCount))
-			);
+		for (int i = 0; i < clusterSize; ++i) {
+			workerLoads.workerLoads.add(initialWorkerLoadCount);
+		}
 
 		return workerLoads;
 	}
 
 	public int getSpecificWorkerLoadBasedOnIndex(int workerIndex) {
-		return this.getWorkerLoads().get(workerIndex).get();
+		return this.getWorkerLoads().get(workerIndex);
 	}
 
 	public synchronized int getMinLoadServer() {
-		AtomicInteger minimumLoadNumber = workerLoads.get(0);
-		workerLoads.forEach(workerLoadNumber ->
-			minimumLoadNumber.set(
-				Math.min(workerLoadNumber.get(), minimumLoadNumber.get())
-			)
-		);
+		int minimalLoadServer = 0;
 
-		return minimumLoadNumber.get();
+		for (int i = 0; i < workerLoads.size(); ++i) {
+			if (workerLoads.get(i) < workerLoads.get(minimalLoadServer)) {
+				minimalLoadServer = i;
+			}
+		}
+
+		return minimalLoadServer;
 	}
 
 	public synchronized void incrementParticularWorkerLoad(int workerIndex) {
-		workerLoads.set(
-			workerIndex,
-			new AtomicInteger(workerLoads.get(workerIndex).incrementAndGet())
-		);
+		workerLoads.set(workerIndex, workerLoads.get(workerIndex) + 1);
 	}
 
 	public synchronized void decrementParticularWorkerLoad(int workerIndex) {
-		workerLoads.set(
-			workerIndex,
-			new AtomicInteger(workerLoads.get(workerIndex).decrementAndGet())
-		);
+		workerLoads.set(workerIndex, workerLoads.get(workerIndex) - 1);
 	}
 }

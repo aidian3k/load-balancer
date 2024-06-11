@@ -22,29 +22,15 @@ dependencies {
     implementation 'org.slf4j:slf4j-simple:2.0.7'
 }
 
-tasks.register('runWorkers') {
+tasks.register('runWorker') {
     doLast {
-        def argumentsFile = file('src/main/resources/workers_list.txt')
+        def port = project.findProperty('port') ?: '40001'
+        println("Running worker program with following arguments: $port")
 
-        def javaExecTasks = []
-        def counter = 0
-
-        argumentsFile.eachLine { line ->
-            println("Running worker program with following arguments: $line")
-            def workerArguments = line.split(",")
-
-            def javaExecTask = tasks.register("runWorker${counter}", JavaExec) {
-                mainClass = 'ee.pw.microservice.worker.WorkerMain'
-                classpath = sourceSets.main.runtimeClasspath
-                args(workerArguments[1])
-            }
-
-            javaExecTasks.add(javaExecTask)
-            counter++
-        }
-
-        javaExecTasks.each { task ->
-            task.get().exec()
+        javaexec {
+            mainClass = 'ee.pw.microservice.worker.WorkerMain'
+            classpath = sourceSets.main.runtimeClasspath
+            args(port)
         }
     }
 }

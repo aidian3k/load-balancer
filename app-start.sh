@@ -6,7 +6,7 @@ docker run --name postgres-container -e POSTGRES_USER=postgres -e POSTGRES_PASSW
 sleep 6
 
 # Then running workers on which the work on db will be done
-#./gradlew runWorkers
+# ./gradlew runWorker -Pport="40004" for every worker
 sleep 3
 
 # Then running load-balancer to serve the clients
